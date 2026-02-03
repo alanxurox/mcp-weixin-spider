@@ -1,6 +1,8 @@
 # MCP WeChat Spider 🕷️
 
-**告别复制粘贴！用MCP让AI直接读取微信公众号**
+**English** | [中文](README_CN.md)
+
+**No more copy-paste! Let AI directly read WeChat articles via MCP**
 
 An MCP (Model Context Protocol) server that enables AI assistants to directly crawl and analyze WeChat public account articles - no more copy-paste!
 
