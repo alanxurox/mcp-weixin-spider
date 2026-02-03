@@ -132,13 +132,20 @@ class WeixinSpiderAB:
     def _parse_json(self, output: str) -> Any:
         """Parse JSON output from agent-browser."""
         try:
-            return json.loads(output)
+            parsed = json.loads(output)
+            # agent-browser returns {success, data, error} wrapper
+            if isinstance(parsed, dict) and "data" in parsed:
+                return parsed["data"]
+            return parsed
         except json.JSONDecodeError:
             # Sometimes output includes non-JSON lines
             for line in output.split('\n'):
                 if line.strip().startswith('{') or line.strip().startswith('['):
                     try:
-                        return json.loads(line)
+                        parsed = json.loads(line)
+                        if isinstance(parsed, dict) and "data" in parsed:
+                            return parsed["data"]
+                        return parsed
                     except:
                         continue
             return output
