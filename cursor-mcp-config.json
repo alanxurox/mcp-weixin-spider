@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "weixin_spider": {
+      "command": "/home/ubuntu/mcp-weixin/.venv/bin/python",
+      "args": [
+        "/home/ubuntu/mcp-weixin/src/mcp_weixin_spider/server.py"
+      ],
+      "env": {
+        "DOWNLOAD_IMAGES": "true",
+        "WAIT_TIME": "10",
+        "PYTHONPATH": "/home/ubuntu/mcp-weixin"
+      }
+    }
+  }
+}
