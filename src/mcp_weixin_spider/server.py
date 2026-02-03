@@ -94,6 +94,81 @@ def get_spider():
 
 
 @app.tool()
+def load_browser_cookies(cookies_json: str) -> str:
+    """
+    加载浏览器cookies/状态用于后续爬取。
+    
+    Load browser cookies/state before crawling. Use this after 
+    authenticating via cursor-ide-browser to pass the session 
+    state to the spider.
+    
+    Args:
+        cookies_json: JSON string of cookies from browser_cookies tool
+                      Format: [{"name": "...", "value": "...", "domain": "..."}, ...]
+        
+    Returns:
+        JSON status message with success/failure
+        
+    Example flow:
+        1. cursor-ide-browser: browser_navigate to WeChat article
+        2. Complete slider verification manually
+        3. cursor-ide-browser: browser_cookies action="get"
+        4. weixin_spider: load_browser_cookies(cookies_json)
+        5. weixin_spider: crawl_weixin_article(url)
+    """
+    import tempfile
+    
+    try:
+        # Validate JSON
+        cookies = json.loads(cookies_json)
+        
+        if not isinstance(cookies, list):
+            return json.dumps({
+                "success": False,
+                "error": "cookies_json must be a JSON array of cookie objects"
+            })
+        
+        # Write to temp file in Playwright storageState format
+        state_file = os.path.join(
+            tempfile.gettempdir(), 
+            "weixin_spider_state.json"
+        )
+        
+        # Convert to Playwright storageState format
+        storage_state = {
+            "cookies": cookies,
+            "origins": []
+        }
+        
+        with open(state_file, 'w') as f:
+            json.dump(storage_state, f)
+        
+        # Set env var for spider to use
+        os.environ["BROWSER_STATE_FILE"] = state_file
+        
+        logger.info(f"Loaded {len(cookies)} cookies to {state_file}")
+        
+        return json.dumps({
+            "success": True,
+            "state_file": state_file,
+            "cookie_count": len(cookies),
+            "message": "Cookies loaded. Now call crawl_weixin_article."
+        }, ensure_ascii=False)
+        
+    except json.JSONDecodeError as e:
+        return json.dumps({
+            "success": False,
+            "error": f"Invalid JSON: {e}"
+        })
+    except Exception as e:
+        logger.error(f"Error loading cookies: {e}")
+        return json.dumps({
+            "success": False,
+            "error": str(e)
+        })
+
+
+@app.tool()
 def crawl_weixin_article(
     url: str, 
     download_images: bool = True, 

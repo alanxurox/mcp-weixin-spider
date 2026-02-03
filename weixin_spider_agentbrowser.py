@@ -183,10 +183,7 @@ class WeixinSpiderAB:
             
             # Load saved browser state if available (helps bypass anti-bot)
             if BROWSER_STATE_FILE and not self._state_loaded:
-                if os.path.exists(BROWSER_STATE_FILE):
-                    logger.info(f"Loading browser state from {BROWSER_STATE_FILE}")
-                    self._run_cmd("state", "load", BROWSER_STATE_FILE)
-                    self._state_loaded = True
+                self._load_cookies_state()
             
             # Navigate to page
             success, output = self._run_cmd("open", url)
@@ -351,6 +348,58 @@ class WeixinSpiderAB:
             "first_300_chars": article.content_text[:300] + "..." if len(article.content_text) > 300 else article.content_text,
             "url": article.url,
         }
+    
+    def _load_cookies_state(self):
+        """Load saved browser state (cookies/storage) from file."""
+        if not BROWSER_STATE_FILE or not os.path.exists(BROWSER_STATE_FILE):
+            return
+            
+        try:
+            with open(BROWSER_STATE_FILE, 'r') as f:
+                state = json.load(f)
+            
+            # Check if it's Playwright storageState format (from cursor-ide-browser)
+            if isinstance(state, dict) and "cookies" in state:
+                cookies = state["cookies"]
+                loaded = 0
+                for cookie in cookies:
+                    name = cookie.get("name", "")
+                    value = cookie.get("value", "")
+                    domain = cookie.get("domain", "mp.weixin.qq.com")
+                    
+                    if name and value:
+                        # Use agent-browser cookies set command
+                        success, _ = self._run_cmd(
+                            "cookies", "set", name, value,
+                            "--domain", domain
+                        )
+                        if success:
+                            loaded += 1
+                
+                logger.info(f"Loaded {loaded}/{len(cookies)} cookies from state file")
+                self._state_loaded = True
+                
+            elif isinstance(state, list):
+                # Direct cookie array format
+                for cookie in state:
+                    name = cookie.get("name", "")
+                    value = cookie.get("value", "")
+                    domain = cookie.get("domain", "mp.weixin.qq.com")
+                    
+                    if name and value:
+                        self._run_cmd("cookies", "set", name, value, "--domain", domain)
+                
+                logger.info(f"Loaded {len(state)} cookies")
+                self._state_loaded = True
+                
+            else:
+                # Legacy agent-browser state format
+                self._run_cmd("state", "load", BROWSER_STATE_FILE)
+                self._state_loaded = True
+                logger.info("Loaded agent-browser state file")
+                
+        except Exception as e:
+            logger.warning(f"Failed to load browser state: {e}")
     
     def close(self):
         """Close browser session."""
