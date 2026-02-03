@@ -58,6 +58,9 @@ DOWNLOAD_IMAGES = os.getenv("DOWNLOAD_IMAGES", "true").lower() == "true"
 WAIT_TIME = int(os.getenv("WAIT_TIME", "10"))
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./downloads")
 
+# Crawler backend: "selenium" (default) or "agentbrowser"
+CRAWLER_BACKEND = os.getenv("CRAWLER_BACKEND", "selenium").lower()
+
 
 def sanitize_path(name: str) -> str:
     """
@@ -73,9 +76,21 @@ def sanitize_path(name: str) -> str:
 
 
 def get_spider():
-    """Lazy import and get spider instance."""
-    from weixin_spider_simple import WeixinSpider
-    return WeixinSpider.get_instance()
+    """
+    Lazy import and get spider instance.
+    
+    Uses CRAWLER_BACKEND env var to select:
+    - "selenium": Full Selenium/Chrome crawler (more features, heavier)
+    - "agentbrowser": agent-browser CLI crawler (lighter, fewer features)
+    """
+    if CRAWLER_BACKEND == "agentbrowser":
+        from weixin_spider_agentbrowser import WeixinSpiderAB
+        logger.info("Using agent-browser backend")
+        return WeixinSpiderAB.get_instance()
+    else:
+        from weixin_spider_simple import WeixinSpider
+        logger.info("Using Selenium backend")
+        return WeixinSpider.get_instance()
 
 
 @app.tool()
@@ -380,7 +395,7 @@ def compare_articles(urls: list[str]) -> str:
 def main():
     """Run the MCP server."""
     logger.info("Starting MCP WeChat Spider Server...")
-    logger.info(f"Config: DOWNLOAD_IMAGES={DOWNLOAD_IMAGES}, WAIT_TIME={WAIT_TIME}s")
+    logger.info(f"Config: CRAWLER_BACKEND={CRAWLER_BACKEND}, DOWNLOAD_IMAGES={DOWNLOAD_IMAGES}, WAIT_TIME={WAIT_TIME}s")
     app.run()
 
 

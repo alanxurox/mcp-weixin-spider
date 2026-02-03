@@ -33,10 +33,20 @@ Or with uv:
 uv pip install -r requirements.txt
 ```
 
-### 2. Configure in Cursor/Claude
+### 2. Choose Backend
+
+| Backend | Pros | Cons |
+|---------|------|------|
+| **agent-browser** | Lighter, no Chrome driver needed | Fewer features, needs agent-browser installed |
+| **selenium** | Full featured, image downloads | Heavier, needs Chrome/ChromeDriver |
+
+Set via `CRAWLER_BACKEND` env var: `"agentbrowser"` or `"selenium"` (default).
+
+### 3. Configure in Cursor/Claude
 
 Add to your MCP settings (Cursor: Settings → MCP, or `~/.cursor/mcp.json`):
 
+**Option A: agent-browser backend (recommended - lighter weight)**
 ```json
 {
   "mcpServers": {
@@ -44,6 +54,26 @@ Add to your MCP settings (Cursor: Settings → MCP, or `~/.cursor/mcp.json`):
       "command": "python",
       "args": ["/path/to/mcp-weixin/src/mcp_weixin_spider/server.py"],
       "env": {
+        "PYTHONPATH": "/path/to/mcp-weixin",
+        "CRAWLER_BACKEND": "agentbrowser",
+        "AGENT_BROWSER_BIN": "/path/to/agent-browser/bin/agent-browser",
+        "WAIT_TIME": "10"
+      }
+    }
+  }
+}
+```
+
+**Option B: Selenium backend (full features)**
+```json
+{
+  "mcpServers": {
+    "weixin_spider": {
+      "command": "python",
+      "args": ["/path/to/mcp-weixin/src/mcp_weixin_spider/server.py"],
+      "env": {
+        "PYTHONPATH": "/path/to/mcp-weixin",
+        "CRAWLER_BACKEND": "selenium",
         "DOWNLOAD_IMAGES": "true",
         "WAIT_TIME": "10"
       }
