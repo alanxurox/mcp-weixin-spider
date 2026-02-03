@@ -34,6 +34,9 @@ AGENT_BROWSER_BIN = os.getenv(
     "/home/ubuntu/agent-browser/bin/agent-browser"
 )
 
+# Optional: Path to saved browser state (cookies, storage) to bypass anti-bot
+BROWSER_STATE_FILE = os.getenv("BROWSER_STATE_FILE", "")
+
 
 @dataclass
 class ArticleContent:
@@ -89,6 +92,7 @@ class WeixinSpiderAB:
         """Initialize instance."""
         self._session_name = "weixin_spider"
         self._initialized = False
+        self._state_loaded = False
     
     @classmethod
     def get_instance(cls) -> 'WeixinSpiderAB':
@@ -177,6 +181,13 @@ class WeixinSpiderAB:
         try:
             logger.info(f"Crawling with agent-browser: {url}")
             
+            # Load saved browser state if available (helps bypass anti-bot)
+            if BROWSER_STATE_FILE and not self._state_loaded:
+                if os.path.exists(BROWSER_STATE_FILE):
+                    logger.info(f"Loading browser state from {BROWSER_STATE_FILE}")
+                    self._run_cmd("state", "load", BROWSER_STATE_FILE)
+                    self._state_loaded = True
+            
             # Navigate to page
             success, output = self._run_cmd("open", url)
             if not success:
@@ -187,6 +198,16 @@ class WeixinSpiderAB:
             
             # Wait for content element
             success, _ = self._run_cmd("wait", "#js_content", timeout=wait_time + 10)
+            
+            # Check for anti-bot verification page
+            page_text = self._extract_text("body")
+            if "环境异常" in page_text or "完成验证" in page_text:
+                raise RuntimeError(
+                    "WeChat anti-bot verification detected. "
+                    "Try: 1) Use BROWSER_STATE_FILE with saved login state, "
+                    "2) Use residential proxy, "
+                    "3) Wait and retry later"
+                )
             
             # Extract title
             article.title = self._extract_text("h1.rich_media_title")

@@ -230,12 +230,47 @@ Example output from `crawl_weixin_article`:
 }
 ```
 
-## Limitations
+## Limitations & Anti-Bot Protection
 
-- **Rate limiting**: WeChat may block excessive requests
-- **Login required**: Some articles require WeChat login (not supported)
+⚠️ **WeChat has sophisticated anti-bot detection:**
+
+- **Verification pages**: WeChat shows "环境异常" (environment abnormal) for automated access
+- **IP blocking**: Datacenter IPs are quickly blocked
+- **Rate limiting**: Aggressive limits on request frequency
+
+### Workarounds
+
+**1. Use saved browser state (recommended):**
+```bash
+# Login manually in headed mode first
+agent-browser --headed open https://mp.weixin.qq.com
+# Complete any verification, then save state
+agent-browser state save weixin-auth.json
+
+# Later, load saved state
+agent-browser state load weixin-auth.json
+```
+
+**2. Use residential proxy:**
+```bash
+agent-browser --proxy http://residential-proxy:port open <url>
+```
+
+**3. Rate limiting best practices:**
+- Wait 10-30 seconds between requests
+- Limit to 10-20 articles per hour
+- Use random delays
+
+### Other Limitations
+
+- **Login required**: Some articles require WeChat login
 - **Dynamic content**: Complex interactive content may not fully render
 - **Image expiry**: Downloaded images are point-in-time snapshots
+
+### References
+
+- [WeChat Scraping Guide](https://scrapingrobot.com/blog/wechat-scraping/) - Residential proxies recommended
+- [Anti-Bot Bypass Methods](https://scrapeops.io/web-scraping-playbook/how-to-bypass-antibots/)
 
 ## Contributing
 
