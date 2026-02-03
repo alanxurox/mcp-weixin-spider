@@ -1,0 +1,8 @@
+# WeChat Article Test URLs
+# All require anti-bot bypass (verification page without auth)
+
+https://mp.weixin.qq.com/s/pA8M_VW35p5uAeM2tgOcWA
+https://mp.weixin.qq.com/s/xlFQXpvLalTi0VjmAwVQCg
+https://mp.weixin.qq.com/s/Nu1Jocu2ym-8mvGW9vDTeg
+https://mp.weixin.qq.com/s/jTPnQpCJ7kOeByA8uLMYjQ
+https://mp.weixin.qq.com/s/BpekvlYUpODK9GExn0FhoQ
