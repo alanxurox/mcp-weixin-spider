@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "weixin_spider": {
+      "command": "/home/ubuntu/mcp-weixin/.venv/bin/python",
+      "args": [
+        "/home/ubuntu/mcp-weixin/src/mcp_weixin_spider/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/home/ubuntu/mcp-weixin",
+        "CRAWLER_BACKEND": "agentbrowser",
+        "AGENT_BROWSER_BIN": "/home/ubuntu/agent-browser/bin/agent-browser",
+        "WAIT_TIME": "10"
+      }
+    }
+  }
+}
